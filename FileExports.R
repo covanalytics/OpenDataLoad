@@ -21,8 +21,8 @@ cons.police <- dbConnect(drv=RSQLite::SQLite(), dbname = police)
 pruns <- dbGetQuery(cons.police, 'select * from PoliceRuns')
 dbDisconnect(cons.police)
 
-pruns$Address <- trimws(x = pruns$Address)
-pruns$Address <- gsub(pattern = "^\\d{1,5}\\s|Apt.\\s\\d*|Apt|APT|\\-|[[:lower:]]", replacement = "", x = pruns$Address)
+#pruns$Address <- trimws(x = pruns$Address)
+#pruns$Address <- gsub(pattern = "^\\d{1,5}\\s|Apt.\\s\\d*|Apt|APT|\\-|[[:lower:]]", replacement = "", x = pruns$Address)
 
 names(pruns)[1] <- "Incident#"
 names(pruns)[2] <- "Date_Time"
@@ -39,7 +39,7 @@ suspicious <- c("Suspicious Person", "Suspicious Activity")
 susp_match <- pruns$Incident_Type %in% suspicious
 pruns$Incident_Type[susp_match] <- "Suspicious Person/Vehicle"
 
-pruns <- pruns[, c(1, 2, 5, 4, 6, 7, 9, 10, 11, 13)]
+pruns <- pruns[, c(1, 2, 4, 6, 7, 9, 10, 11, 13)]
 
 #Offset latitdue and longitude
 #offset_crds <- function(df, lat, lon, scientific = FALSE){
@@ -112,11 +112,11 @@ cons.police <- dbConnect(drv=RSQLite::SQLite(), dbname=police)
 parrest <- dbGetQuery(cons.police, 'select * from Arrests')
 dbDisconnect(cons.police)
 
-parrest$Location <- trimws(x = parrest$Location)
-parrest$Location <- gsub(pattern = "^\\d{1,5}\\s|Apt.\\s\\d*|Apt|APT|\\-|[[:lower:]]|Intersection|\\:|[0-9]*$|\\#|[0-9][[:upper:]]+$", 
-                         replacement = "", 
-                         x = parrest$Location)
-parrest$Location <- trimws(x = parrest$Location)
+#parrest$Location <- trimws(x = parrest$Location)
+#parrest$Location <- gsub(pattern = "^\\d{1,5}\\s|Apt.\\s\\d*|Apt|APT|\\-|[[:lower:]]|Intersection|\\:|[0-9]*$|\\#|[0-9][[:upper:]]+$", 
+                         #replacement = "", 
+                         #x = parrest$Location)
+#parrest$Location <- trimws(x = parrest$Location)
 parrest <- within(parrest, {
   Date <- strptime(Date, format = "%m/%d/%Y %H:%M")
 })
@@ -133,10 +133,10 @@ parrestAgg$Count <- NULL
 parrest <- left_join(parrest, parrestAgg, by = c("Date" = "Date", "Name" = "Name"))
 
 
-parrest <- parrest[, c(14, 2, 4, 5, 6, 7, 9, 11)] 
+parrest <- parrest[, c(14, 2, 5, 6, 7, 9, 11)] 
 names(parrest)[1] <- "ID"
 names(parrest)[2] <- "Date_Time"
-names(parrest)[4:7] <- c("Charge", "DUI_Charge", "Gun_Charge", "Neighborhood")
+names(parrest)[3:6] <- c("Charge", "DUI_Charge", "Gun_Charge", "Neighborhood")
 
 
 parrest$Neighborhood[parrest$Neighborhood == "CENTRAL BUSINESS DISTRICT"] <- "Central Business District"
@@ -162,23 +162,23 @@ if(!dir.exists(arrestDir)){
 parrest2017 <- parrest[parrest$Date_Time >= as.Date("2017-01-01"),]
 parrest2017 <- na.omit(parrest2017)
 
-#parrest2016 <- parrest[parrest$Date_Time >= as.Date("2016-01-01") & parrest$Date_Time < as.Date("2017-01-01"),]
-#parrest2016 <- na.omit(parrest2016)
-#parrest2015 <- parrest[parrest$Date_Time >= as.Date("2015-01-01") & parrest$Date_Time < as.Date("2016-01-01"),]
-#parrest2015 <- na.omit(parrest2015)
-#parrest2014 <- parrest[parrest$Date_Time >= as.Date("2014-01-01") & parrest$Date_Time < as.Date("2015-01-01"),]
-#parrest2014 <- na.omit(parrest2014)
-#parrest2013 <- parrest[parrest$Date_Time >= as.Date("2013-01-01") & parrest$Date_Time < as.Date("2014-01-01"),]
-#parrest2013 <- na.omit(parrest2013)
+parrest2016 <- parrest[parrest$Date_Time >= as.Date("2016-01-01") & parrest$Date_Time < as.Date("2017-01-01"),]
+parrest2016 <- na.omit(parrest2016)
+parrest2015 <- parrest[parrest$Date_Time >= as.Date("2015-01-01") & parrest$Date_Time < as.Date("2016-01-01"),]
+parrest2015 <- na.omit(parrest2015)
+parrest2014 <- parrest[parrest$Date_Time >= as.Date("2014-01-01") & parrest$Date_Time < as.Date("2015-01-01"),]
+parrest2014 <- na.omit(parrest2014)
+parrest2013 <- parrest[parrest$Date_Time >= as.Date("2013-01-01") & parrest$Date_Time < as.Date("2014-01-01"),]
+parrest2013 <- na.omit(parrest2013)
 
 write_multiple <- function(x, file){
   write.csv(x, file, row.names = FALSE)
 }
 write_multiple(parrest2017, "Arrests2017.csv")
-#write_multiple(parrest2016, "Arrests2016.csv")
-#write_multiple(parrest2015, "Arrests2015.csv")
-#write_multiple(parrest2014, "Arrests2014.csv")
-#write_multiple(parrest2013, "Arrests2013.csv")
+write_multiple(parrest2016, "Arrests2016.csv")
+write_multiple(parrest2015, "Arrests2015.csv")
+write_multiple(parrest2014, "Arrests2014.csv")
+write_multiple(parrest2013, "Arrests2013.csv")
 
 
 
@@ -187,14 +187,14 @@ cons.development <- dbConnect(drv=RSQLite::SQLite(), dbname = development)
 safety <- dbGetQuery(cons.development, 'select * from ParkSafety')
 dbDisconnect(cons.development)
 
-safety$Address <- trimws(x = safety$Address)
-safety$Address <- gsub(pattern = "^\\d{1,5}\\s|Apt.\\s\\d*|Apt|APT|\\-|[[:lower:]]", replacement = "", x = safety$Address)
-
-safety <- safety[, c(1, 2, 5, 4, 6, 7, 9, 10, 11, 13, 14)]
+#safety$Address <- trimws(x = safety$Address)
+#safety$Address <- gsub(pattern = "^\\d{1,5}\\s|Apt.\\s\\d*|Apt|APT|\\-|[[:lower:]]", replacement = "", x = safety$Address)
 names(safety)[1]  <- "Incident#"
 names(safety)[2]  <- "Date_Time"
 names(safety)[4] <- "Incident Type"
-names(safety)[8:9] <- c("Gun_Reported", "Neighborhood")
+names(safety)[10:11] <- c("Gun_Reported", "Neighborhood")
+safety <- safety[, c(1, 2, 4, 6, 7, 9, 10, 11, 13, 14)]
+
 
 write_multiple <- function(x, file){
   write.csv(x, file, row.names = FALSE)
@@ -251,24 +251,24 @@ cons.fire <- dbConnect(drv=RSQLite::SQLite(), dbname = fire)
 fire_runs <- dbGetQuery(cons.fire, 'select * from FireRuns')
 dbDisconnect(cons.fire)
 
-f_columns <- c(2, 6, 8, 9, 10, 49, 50, 5, 51, 53, 37, 18)
+f_columns <- c(1, 5, 48, 49, 4, 50, 52, 36, 17)
 fire_runs <- fire_runs[f_columns]
-fire_runs <- unite(fire_runs, Address, st_prefix, street, st_type)
+#fire_runs <- unite(fire_runs, Address, st_prefix, street, st_type)
 #fire_runs$alm_date <- dmy(fire_runs$alm_date)
 
-replace_string <- function(df){
-    df <- str_replace(df, "^\\_", "")
-    df <- str_replace(df, "[[:punct:]]", " ")
-    df <- str_replace(df, "\\_", " ")
-}
-fire_runs$Address <- replace_string(fire_runs$Address)
-fire_runs$Address <- str_trim(fire_runs$Address, side = c("both"))
+#replace_string <- function(df){
+    #df <- str_replace(df, "^\\_", "")
+    #df <- str_replace(df, "[[:punct:]]", " ")
+    #df <- str_replace(df, "\\_", " ")
+#}
+#fire_runs$Address <- replace_string(fire_runs$Address)
+#fire_runs$Address <- str_trim(fire_runs$Address, side = c("both"))
 #Keep only Fire & Rescue realted calls.  Drop EMS and medical related.
 drop <- grepl(pattern = "Ambulance|EMS incident|Medical assist|EMS Call|(EMS)", x = fire_runs$S_code)
 #drop_match <- fire_runs$S_code %in% drop
 fire_runs <- fire_runs[!drop,]
 
-names(fire_runs) <- c("Incident#", "Date", "Address","Incident_Type", "Incident_Description", "Run_Description",
+names(fire_runs) <- c("Incident#", "Date", "Incident_Type", "Incident_Description", "Run_Description",
                        "Neighborhood", "Sector", "Notification_Time", "Arrival_Time")
 
 #To get response times here
